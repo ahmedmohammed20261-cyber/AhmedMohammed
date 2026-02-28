@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { User, Mail, Shield } from 'lucide-react';
+import HelpButton from '../components/HelpButton';
 
 export default function Settings() {
   const [user, setUser] = useState<any>(null);
@@ -15,9 +16,24 @@ export default function Settings() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">الإعدادات</h1>
-        <p className="text-sm text-gray-500 mt-1">إدارة إعدادات حسابك</p>
+      <div className="flex items-center gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">الإعدادات</h1>
+          <p className="text-sm text-gray-500 mt-1">إدارة إعدادات حسابك</p>
+        </div>
+        <HelpButton 
+          title="الإعدادات"
+          content={
+            <div className="space-y-4">
+              <p>هذه الشاشة تعرض معلومات حسابك الشخصي وإعدادات النظام.</p>
+              <ul className="list-disc list-inside space-y-2">
+                <li><strong>معرف المستخدم:</strong> المعرف الفريد الخاص بك في النظام.</li>
+                <li><strong>البريد الإلكتروني:</strong> البريد الإلكتروني المستخدم لتسجيل الدخول.</li>
+                <li><strong>آخر تسجيل دخول:</strong> تاريخ ووقت آخر مرة قمت فيها بتسجيل الدخول إلى النظام.</li>
+              </ul>
+            </div>
+          }
+        />
       </div>
 
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">

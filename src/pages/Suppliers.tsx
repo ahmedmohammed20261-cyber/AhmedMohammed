@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Plus, Search, Users, Phone, Edit, Trash2 } from 'lucide-react';
+import HelpButton from '../components/HelpButton';
 
 export default function Suppliers() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -108,9 +109,25 @@ export default function Suppliers() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">الموردين</h1>
-          <p className="text-sm text-gray-500 mt-1">إدارة موردي المواد</p>
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">الموردين</h1>
+            <p className="text-sm text-gray-500 mt-1">إدارة موردي المواد</p>
+          </div>
+          <HelpButton 
+            title="الموردين"
+            content={
+              <div className="space-y-4">
+                <p>هذه الشاشة مخصصة لإدارة بيانات الموردين الذين تتعامل معهم لتوريد المواد.</p>
+                <ul className="list-disc list-inside space-y-2">
+                  <li><strong>إضافة مورد:</strong> اضغط على زر "إضافة مورد" لإدخال بيانات مورد جديد (الاسم، رقم الهاتف، الملاحظات).</li>
+                  <li><strong>البحث:</strong> استخدم شريط البحث للعثور على مورد معين بالاسم أو رقم الهاتف.</li>
+                  <li><strong>تعديل/حذف:</strong> يمكنك تعديل بيانات المورد أو حذفه باستخدام الأيقونات الموجودة بجانب اسم كل مورد.</li>
+                </ul>
+                <p><strong>ملاحظة:</strong> الموردون المسجلون هنا سيظهرون في قائمة الاختيار عند إضافة مواد جديدة لأي عقد.</p>
+              </div>
+            }
+          />
         </div>
         <button
           onClick={() => handleOpenModal()}

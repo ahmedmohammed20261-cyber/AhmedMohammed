@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import { Plus, Search, FileText, Calendar, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
+import HelpButton from '../components/HelpButton';
 
 export default function Contracts() {
   const [contracts, setContracts] = useState<any[]>([]);
@@ -60,9 +61,25 @@ export default function Contracts() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">العقود</h1>
-          <p className="text-sm text-gray-500 mt-1">إدارة عقود التوريد الخاصة بك</p>
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">العقود</h1>
+            <p className="text-sm text-gray-500 mt-1">إدارة عقود التوريد الخاصة بك</p>
+          </div>
+          <HelpButton 
+            title="العقود"
+            content={
+              <div className="space-y-4">
+                <p>هذه الشاشة تعرض قائمة بجميع العقود المسجلة في النظام.</p>
+                <ul className="list-disc list-inside space-y-2">
+                  <li><strong>عقد جديد:</strong> اضغط على زر "عقد جديد" لإنشاء عقد توريد جديد وإدخال تفاصيله.</li>
+                  <li><strong>البحث:</strong> يمكنك البحث عن أي عقد باستخدام رقم العقد، المحافظة، أو الفرع.</li>
+                  <li><strong>حالة العقد:</strong> كل عقد له حالة (جديد، قيد التنفيذ، مكتمل، مدفوع) تظهر بلون مميز لتسهيل المتابعة.</li>
+                  <li><strong>التفاصيل:</strong> اضغط على أي عقد في القائمة لعرض تفاصيله الكاملة، وإدارة بنوده، وتسجيل المدفوعات الخاصة به.</li>
+                </ul>
+              </div>
+            }
+          />
         </div>
         <Link
           to="/contracts/new"

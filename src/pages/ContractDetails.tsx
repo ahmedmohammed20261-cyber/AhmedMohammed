@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { ArrowLeft, Edit, Trash2, Package, Truck, DollarSign, Paperclip } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Package, Truck, DollarSign, Paperclip, Printer } from 'lucide-react';
 import { format } from 'date-fns';
+import { useReactToPrint } from 'react-to-print';
 import ContractItems from '../components/contracts/ContractItems';
 import ContractDeliveries from '../components/contracts/ContractDeliveries';
 import ContractPayments from '../components/contracts/ContractPayments';
 import ContractAttachments from '../components/contracts/ContractAttachments';
+import { ContractPrintView } from '../components/contracts/ContractPrintView';
+import HelpButton from '../components/HelpButton';
 
 export default function ContractDetails() {
   const { id } = useParams();
@@ -14,6 +17,10 @@ export default function ContractDetails() {
   const [contract, setContract] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('items');
   const [loading, setLoading] = useState(true);
+  const [isPrinting, setIsPrinting] = useState(false);
+  
+  const printRef = useRef<HTMLDivElement>(null);
+  const [printData, setPrintData] = useState({ items: [], payments: [] });
 
   useEffect(() => {
     fetchContract();
@@ -37,6 +44,31 @@ export default function ContractDetails() {
       setLoading(false);
     }
   }
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    onBeforePrint: async () => {
+      setIsPrinting(true);
+      try {
+        const [itemsRes, paymentsRes] = await Promise.all([
+          supabase.from('contract_items').select('*').eq('contract_id', id),
+          supabase.from('contract_payments').select('*').eq('contract_id', id)
+        ]);
+        
+        setPrintData({
+          items: itemsRes.data || [],
+          payments: paymentsRes.data || []
+        });
+        
+        // Small delay to ensure state is updated and rendered before printing
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error('Error fetching print data:', error);
+      } finally {
+        setIsPrinting(false);
+      }
+    },
+  });
 
   const handleDelete = async () => {
     if (window.confirm('هل أنت متأكد أنك تريد حذف هذا العقد؟')) {
@@ -71,21 +103,49 @@ export default function ContractDetails() {
           <Link to="/contracts" className="p-2 rounded-full hover:bg-gray-200 text-gray-600 transition-colors">
             <ArrowLeft size={20} />
           </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">عقد #{contract.contract_number}</h1>
-            <p className="text-sm text-gray-500">{contract.governorate} - {contract.branch}</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">عقد #{contract.contract_number}</h1>
+              <p className="text-sm text-gray-500">{contract.governorate} - {contract.branch}</p>
+            </div>
+            <HelpButton 
+              title="تفاصيل العقد"
+              content={
+                <div className="space-y-4">
+                  <p>هذه الشاشة هي المركز الرئيسي لإدارة كل ما يخص هذا العقد.</p>
+                  <ul className="list-disc list-inside space-y-2">
+                    <li><strong>العناصر:</strong> إضافة وإدارة المواد المطلوبة للعقد (الكمية، سعر الشراء، سعر البيع، المورد).</li>
+                    <li><strong>التسليمات:</strong> تتبع ما تم تسليمه من المواد للعميل وتواريخ التسليم.</li>
+                    <li><strong>المدفوعات:</strong> تسجيل الدفعات المالية المستلمة من العميل وتواريخها.</li>
+                    <li><strong>المرفقات:</strong> رفع وحفظ المستندات والصور المتعلقة بالعقد (مثل صور الفواتير أو العقود الورقية).</li>
+                  </ul>
+                  <p><strong>الطباعة:</strong> يمكنك استخدام زر "طباعة" في الأعلى لتصدير الفاتورة أو التقرير المالي للعقد كملف PDF.</p>
+                </div>
+              }
+            />
           </div>
         </div>
         <div className="flex space-x-2">
+          <button
+            onClick={handlePrint}
+            disabled={isPrinting}
+            className="p-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center"
+            title="طباعة / تصدير PDF"
+          >
+            <Printer size={18} className={isPrinting ? 'animate-pulse' : ''} />
+            <span className="mr-2 text-sm hidden sm:inline">{isPrinting ? 'جاري التجهيز...' : 'طباعة'}</span>
+          </button>
           <Link
             to={`/contracts/${id}/edit`}
-            className="p-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+            className="p-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors flex items-center"
+            title="تعديل"
           >
             <Edit size={18} />
           </Link>
           <button
             onClick={handleDelete}
-            className="p-2 rounded-md border border-red-300 bg-white text-red-600 hover:bg-red-50 transition-colors"
+            className="p-2 rounded-md border border-red-300 bg-white text-red-600 hover:bg-red-50 transition-colors flex items-center"
+            title="حذف"
           >
             <Trash2 size={18} />
           </button>
@@ -157,6 +217,13 @@ export default function ContractDetails() {
           {activeTab === 'attachments' && <ContractAttachments contractId={id as string} />}
         </div>
       </div>
+
+      <ContractPrintView 
+        ref={printRef} 
+        contract={contract} 
+        items={printData.items} 
+        payments={printData.payments} 
+      />
     </div>
   );
 }
