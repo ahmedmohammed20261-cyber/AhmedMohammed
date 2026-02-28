@@ -22,6 +22,7 @@ CREATE TABLE contracts (
     governorate VARCHAR(100) NOT NULL,
     branch VARCHAR(100) NOT NULL,
     contract_date DATE NOT NULL,
+    currency VARCHAR(3) DEFAULT 'SAR',
     status contract_status DEFAULT 'new',
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

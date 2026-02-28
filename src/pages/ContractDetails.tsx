@@ -3,6 +3,10 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, Edit, Trash2, Package, Truck, DollarSign, Paperclip } from 'lucide-react';
 import { format } from 'date-fns';
+import ContractItems from '../components/contracts/ContractItems';
+import ContractDeliveries from '../components/contracts/ContractDeliveries';
+import ContractPayments from '../components/contracts/ContractPayments';
+import ContractAttachments from '../components/contracts/ContractAttachments';
 
 export default function ContractDetails() {
   const { id } = useParams();
@@ -147,10 +151,10 @@ export default function ContractDetails() {
         </div>
         
         <div className="mt-6">
-          {activeTab === 'items' && <div className="text-center py-12 text-gray-500">وحدة العناصر قريباً</div>}
-          {activeTab === 'deliveries' && <div className="text-center py-12 text-gray-500">وحدة التسليمات قريباً</div>}
-          {activeTab === 'payments' && <div className="text-center py-12 text-gray-500">وحدة المدفوعات قريباً</div>}
-          {activeTab === 'attachments' && <div className="text-center py-12 text-gray-500">وحدة المرفقات قريباً</div>}
+          {activeTab === 'items' && <ContractItems contractId={id as string} currency={contract.currency || 'SAR'} />}
+          {activeTab === 'deliveries' && <ContractDeliveries contractId={id as string} />}
+          {activeTab === 'payments' && <ContractPayments contractId={id as string} currency={contract.currency || 'SAR'} />}
+          {activeTab === 'attachments' && <ContractAttachments contractId={id as string} />}
         </div>
       </div>
     </div>

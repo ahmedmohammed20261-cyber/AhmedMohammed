@@ -15,6 +15,7 @@ export default function ContractForm() {
     governorate: '',
     branch: '',
     contract_date: new Date().toISOString().split('T')[0],
+    currency: 'SAR',
     status: 'new',
     notes: '',
   });
@@ -40,6 +41,7 @@ export default function ContractForm() {
           governorate: data.governorate,
           branch: data.branch,
           contract_date: data.contract_date,
+          currency: data.currency || 'SAR',
           status: data.status,
           notes: data.notes || '',
         });
@@ -180,6 +182,32 @@ export default function ContractForm() {
                 onChange={handleChange}
                 className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
               />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="currency" className="block text-sm font-medium text-gray-700">
+              العملة
+            </label>
+            <div className="mt-1">
+              <select
+                id="currency"
+                name="currency"
+                value={formData.currency}
+                onChange={handleChange}
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+              >
+                <option value="SAR">ريال سعودي (SAR)</option>
+                <option value="USD">دولار أمريكي (USD)</option>
+                <option value="EUR">يورو (EUR)</option>
+                <option value="AED">درهم إماراتي (AED)</option>
+                <option value="EGP">جنيه مصري (EGP)</option>
+                <option value="KWD">دينار كويتي (KWD)</option>
+                <option value="QAR">ريال قطري (QAR)</option>
+                <option value="OMR">ريال عماني (OMR)</option>
+                <option value="BHD">دينار بحريني (BHD)</option>
+                <option value="JOD">دينار أردني (JOD)</option>
+              </select>
             </div>
           </div>
 
