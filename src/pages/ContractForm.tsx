@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, Save } from 'lucide-react';
 import { logAction } from '../lib/audit';
+import HelpButton from '../components/HelpButton';
 
 export default function ContractForm() {
   const { id } = useParams();
@@ -108,18 +109,36 @@ export default function ContractForm() {
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
-      <div className="flex items-center space-x-4">
-        <Link to="/contracts" className="p-2 rounded-full hover:bg-gray-200 text-gray-600 transition-colors">
-          <ArrowLeft size={20} />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {isEdit ? 'تعديل العقد' : 'عقد جديد'}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {isEdit ? 'تحديث تفاصيل العقد' : 'إنشاء عقد توريد جديد'}
-          </p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4 space-x-reverse">
+          <Link to="/contracts" className="p-2 rounded-full hover:bg-gray-200 text-gray-600 transition-colors">
+            <ArrowLeft size={20} />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {isEdit ? 'تعديل العقد' : 'عقد جديد'}
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {isEdit ? 'تحديث تفاصيل العقد' : 'إنشاء عقد توريد جديد'}
+            </p>
+          </div>
         </div>
+        <HelpButton 
+          title={isEdit ? 'تعديل العقد' : 'عقد جديد'}
+          content={
+            <div className="space-y-4">
+              <p>هذه الشاشة تتيح لك إدخال البيانات الأساسية للعقد.</p>
+              <ul className="list-disc list-inside space-y-2">
+                <li><strong>رقم العقد:</strong> الرقم المرجعي للعقد (يجب أن يكون فريداً).</li>
+                <li><strong>المحافظة والفرع:</strong> تحديد الموقع الجغرافي للعقد.</li>
+                <li><strong>تاريخ العقد:</strong> تاريخ توقيع أو بدء العقد.</li>
+                <li><strong>العملة:</strong> العملة التي سيتم التعامل بها في هذا العقد (مهم جداً للحسابات).</li>
+                <li><strong>الحالة:</strong> حالة العقد الحالية (جديد، قيد التنفيذ، مكتمل، مدفوع).</li>
+              </ul>
+              <p>بعد حفظ العقد، ستتمكن من إضافة العناصر (الكميات والأسعار) والتسليمات والمدفوعات من شاشة تفاصيل العقد.</p>
+            </div>
+          }
+        />
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white shadow-sm rounded-lg p-6 space-y-6">
