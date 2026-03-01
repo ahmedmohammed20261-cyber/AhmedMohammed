@@ -25,7 +25,17 @@ export default function Dashboard() {
         // Fetch all contract items
         const { data: items } = await supabase
           .from('contract_items')
-          .select('contract_id, quantity, sale_price, purchase_price');
+          .select('contract_id, quantity, sale_price');
+
+        // Fetch all purchases
+        const { data: purchases } = await supabase
+          .from('contract_purchases')
+          .select('contract_id, quantity, purchase_price, purchase_date');
+
+        // Fetch all expenses
+        const { data: expenses } = await supabase
+          .from('contract_expenses')
+          .select('contract_id, amount, expense_date');
 
         // Fetch all payments
         const { data: payments } = await supabase
@@ -56,19 +66,57 @@ export default function Dashboard() {
             if (contract) {
               const curr = contract.currency || 'SAR';
               const value = (item.quantity * item.sale_price);
-              const cost = (item.quantity * item.purchase_price);
               
               grouped[curr].totalValue += value;
-              grouped[curr].totalCost += cost;
 
-              // Monthly Revenue/Cost Data (based on contract date)
+              // Monthly Revenue Data (based on contract date)
               if (contract.contract_date) {
                 const month = format(parseISO(contract.contract_date), 'MMM yyyy', { locale: ar });
                 if (!charts[curr].monthlyData[month]) {
                   charts[curr].monthlyData[month] = { name: month, الإيرادات: 0, التكاليف: 0 };
                 }
                 charts[curr].monthlyData[month].الإيرادات += value;
+              }
+            }
+          });
+        }
+
+        if (purchases && contracts) {
+          purchases.forEach(purchase => {
+            const contract = contracts.find(c => c.id === purchase.contract_id);
+            if (contract) {
+              const curr = contract.currency || 'SAR';
+              const cost = (purchase.quantity * purchase.purchase_price);
+              
+              grouped[curr].totalCost += cost;
+
+              // Monthly Cost Data (based on purchase date)
+              if (purchase.purchase_date) {
+                const month = format(parseISO(purchase.purchase_date), 'MMM yyyy', { locale: ar });
+                if (!charts[curr].monthlyData[month]) {
+                  charts[curr].monthlyData[month] = { name: month, الإيرادات: 0, التكاليف: 0 };
+                }
                 charts[curr].monthlyData[month].التكاليف += cost;
+              }
+            }
+          });
+        }
+
+        if (expenses && contracts) {
+          expenses.forEach(expense => {
+            const contract = contracts.find(c => c.id === expense.contract_id);
+            if (contract) {
+              const curr = contract.currency || 'SAR';
+              
+              grouped[curr].totalCost += expense.amount;
+
+              // Monthly Cost Data (based on expense date)
+              if (expense.expense_date) {
+                const month = format(parseISO(expense.expense_date), 'MMM yyyy', { locale: ar });
+                if (!charts[curr].monthlyData[month]) {
+                  charts[curr].monthlyData[month] = { name: month, الإيرادات: 0, التكاليف: 0 };
+                }
+                charts[curr].monthlyData[month].التكاليف += expense.amount;
               }
             }
           });

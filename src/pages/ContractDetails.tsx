@@ -1,10 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { ArrowLeft, Edit, Trash2, Package, Truck, DollarSign, Paperclip, Printer } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Package, Truck, DollarSign, Paperclip, Printer, ShoppingCart, Receipt } from 'lucide-react';
 import { format } from 'date-fns';
 import { useReactToPrint } from 'react-to-print';
 import ContractItems from '../components/contracts/ContractItems';
+import ContractPurchases from '../components/contracts/ContractPurchases';
+import ContractExpenses from '../components/contracts/ContractExpenses';
 import ContractDeliveries from '../components/contracts/ContractDeliveries';
 import ContractPayments from '../components/contracts/ContractPayments';
 import ContractAttachments from '../components/contracts/ContractAttachments';
@@ -92,7 +94,9 @@ export default function ContractDetails() {
   if (!contract) return null;
 
   const tabs = [
-    { id: 'items', name: 'العناصر', icon: Package },
+    { id: 'items', name: 'الأصناف (البيع)', icon: Package },
+    { id: 'purchases', name: 'المشتريات', icon: ShoppingCart },
+    { id: 'expenses', name: 'المصاريف', icon: Receipt },
     { id: 'deliveries', name: 'التسليمات', icon: Truck },
     { id: 'payments', name: 'المدفوعات', icon: DollarSign },
     { id: 'attachments', name: 'المرفقات', icon: Paperclip },
@@ -214,6 +218,8 @@ export default function ContractDetails() {
         
         <div className="mt-6">
           {activeTab === 'items' && <ContractItems contractId={id as string} currency={contract.currency || 'SAR'} />}
+          {activeTab === 'purchases' && <ContractPurchases contractId={id as string} currency={contract.currency || 'SAR'} />}
+          {activeTab === 'expenses' && <ContractExpenses contractId={id as string} currency={contract.currency || 'SAR'} />}
           {activeTab === 'deliveries' && <ContractDeliveries contractId={id as string} />}
           {activeTab === 'payments' && <ContractPayments contractId={id as string} currency={contract.currency || 'SAR'} />}
           {activeTab === 'attachments' && <ContractAttachments contractId={id as string} />}

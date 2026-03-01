@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Home, FileText, Users, Settings, LogOut, Activity } from 'lucide-react';
+import { Home, FileText, Users, Settings, LogOut, Activity, BarChart2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -36,6 +36,7 @@ export default function Layout() {
     { path: '/', icon: Home, label: 'لوحة القيادة' },
     { path: '/contracts', icon: FileText, label: 'العقود' },
     { path: '/suppliers', icon: Users, label: 'الموردين' },
+    { path: '/reports', icon: BarChart2, label: 'التقارير' },
     { path: '/audit-logs', icon: Activity, label: 'سجل الحركات' },
     { path: '/settings', icon: Settings, label: 'الإعدادات' },
   ];

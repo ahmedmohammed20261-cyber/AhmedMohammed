@@ -14,7 +14,6 @@ export default function ContractItems({ contractId, currency }: { contractId: st
     item_name: '',
     quantity: '',
     sale_price: '',
-    purchase_price: '',
   });
 
   useEffect(() => {
@@ -46,11 +45,10 @@ export default function ContractItems({ contractId, currency }: { contractId: st
         item_name: item.item_name,
         quantity: item.quantity.toString(),
         sale_price: item.sale_price.toString(),
-        purchase_price: item.purchase_price.toString(),
       });
     } else {
       setEditingItem(null);
-      setFormData({ item_name: '', quantity: '', sale_price: '', purchase_price: '' });
+      setFormData({ item_name: '', quantity: '', sale_price: '' });
     }
     setIsModalOpen(true);
   };
@@ -69,7 +67,7 @@ export default function ContractItems({ contractId, currency }: { contractId: st
       item_name: formData.item_name,
       quantity: parseFloat(formData.quantity),
       sale_price: parseFloat(formData.sale_price),
-      purchase_price: parseFloat(formData.purchase_price),
+      purchase_price: 0, // Default to 0 since it's now handled in purchases
     };
 
     try {
@@ -144,26 +142,20 @@ export default function ContractItems({ contractId, currency }: { contractId: st
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنصر</th>
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية</th>
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">سعر البيع</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">سعر الشراء</th>
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجمالي (بيع)</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الربح المتوقع</th>
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">إجراءات</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {items.map((item) => {
                 const totalSale = item.quantity * item.sale_price;
-                const totalCost = item.quantity * item.purchase_price;
-                const profit = totalSale - totalCost;
                 
                 return (
                   <tr key={item.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.item_name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.quantity}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(item.sale_price, currency)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(item.purchase_price, currency)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{formatCurrency(totalSale, currency)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-emerald-600 font-medium">{formatCurrency(profit, currency)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button onClick={() => handleOpenModal(item)} className="text-indigo-600 hover:text-indigo-900 ml-3">
                         <Edit size={16} />
@@ -221,17 +213,6 @@ export default function ContractItems({ contractId, currency }: { contractId: st
                         required
                         value={formData.sale_price}
                         onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">سعر الشراء (للوحدة)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        required
-                        value={formData.purchase_price}
-                        onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                       />
                     </div>
