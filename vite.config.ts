@@ -35,6 +35,60 @@ export default defineConfig(({mode}) => {
           globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
           runtimeCaching: [
             {
+              urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+              handler: 'NetworkOnly',
+              method: 'POST',
+              options: {
+                backgroundSync: {
+                  name: 'supabase-post-queue',
+                  options: {
+                    maxRetentionTime: 24 * 60 // Retry for max of 24 Hours
+                  }
+                }
+              }
+            },
+            {
+              urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+              handler: 'NetworkOnly',
+              method: 'PATCH',
+              options: {
+                backgroundSync: {
+                  name: 'supabase-patch-queue',
+                  options: {
+                    maxRetentionTime: 24 * 60
+                  }
+                }
+              }
+            },
+            {
+              urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+              handler: 'NetworkOnly',
+              method: 'DELETE',
+              options: {
+                backgroundSync: {
+                  name: 'supabase-delete-queue',
+                  options: {
+                    maxRetentionTime: 24 * 60
+                  }
+                }
+              }
+            },
+            {
+              urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+              handler: 'NetworkFirst',
+              method: 'GET',
+              options: {
+                cacheName: 'supabase-get-cache',
+                expiration: {
+                  maxEntries: 200,
+                  maxAgeSeconds: 60 * 60 * 24 // 1 day
+                },
+                cacheableResponse: {
+                  statuses: [0, 200]
+                }
+              }
+            },
+            {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
               handler: 'CacheFirst',
               options: {
