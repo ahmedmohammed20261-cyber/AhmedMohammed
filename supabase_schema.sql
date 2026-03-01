@@ -147,5 +147,21 @@ CREATE POLICY "Users can delete attachments of their contracts" ON attachments F
     EXISTS (SELECT 1 FROM contracts WHERE contracts.id = attachments.contract_id AND contracts.user_id = auth.uid())
 );
 
+-- 7. Audit Logs Table
+CREATE TABLE audit_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    action VARCHAR(50) NOT NULL, -- e.g., 'CREATE', 'UPDATE', 'DELETE'
+    entity_type VARCHAR(50) NOT NULL, -- e.g., 'CONTRACT', 'SUPPLIER', 'PAYMENT'
+    entity_id UUID NOT NULL,
+    details JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Policies for Audit Logs
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view their own audit logs" ON audit_logs FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own audit logs" ON audit_logs FOR INSERT WITH CHECK (auth.uid() = user_id);
+
 -- Storage bucket for attachments
 -- You need to create a bucket named 'attachments' in Supabase Storage dashboard manually or via API.

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Upload, Trash2, FileText, Download, AlertCircle } from 'lucide-react';
 import { formatDate } from '../../lib/utils';
+import { logAction } from '../../lib/audit';
 
 export default function ContractAttachments({ contractId }: { contractId: string }) {
   const [attachments, setAttachments] = useState<any[]>([]);
@@ -61,7 +62,7 @@ export default function ContractAttachments({ contractId }: { contractId: string
         .getPublicUrl(filePath);
 
       // 3. Save record in database
-      const { error: dbError } = await supabase
+      const { data, error: dbError } = await supabase
         .from('attachments')
         .insert([
           {
@@ -69,9 +70,14 @@ export default function ContractAttachments({ contractId }: { contractId: string
             file_url: publicUrl,
             file_type: file.type || fileExt,
           }
-        ]);
+        ])
+        .select()
+        .single();
 
       if (dbError) throw dbError;
+      if (data) {
+        await logAction('CREATE', 'ATTACHMENT', data.id, { file_url: publicUrl, file_type: file.type || fileExt });
+      }
 
       fetchAttachments();
     } catch (error: any) {
@@ -103,6 +109,7 @@ export default function ContractAttachments({ contractId }: { contractId: string
         const { error: dbError } = await supabase.from('attachments').delete().eq('id', id);
         if (dbError) throw dbError;
         
+        await logAction('DELETE', 'ATTACHMENT', id);
         fetchAttachments();
       } catch (error) {
         console.error('Error deleting attachment:', error);

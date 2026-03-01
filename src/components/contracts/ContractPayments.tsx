@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../lib/utils';
+import { logAction } from '../../lib/audit';
 
 export default function ContractPayments({ contractId, currency }: { contractId: string, currency: string }) {
   const [payments, setPayments] = useState<any[]>([]);
@@ -99,11 +100,17 @@ export default function ContractPayments({ contractId, currency }: { contractId:
           .update(payload)
           .eq('id', editingPayment.id);
         if (error) throw error;
+        await logAction('UPDATE', 'PAYMENT', editingPayment.id, payload);
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('payments')
-          .insert([payload]);
+          .insert([payload])
+          .select()
+          .single();
         if (error) throw error;
+        if (data) {
+          await logAction('CREATE', 'PAYMENT', data.id, payload);
+        }
       }
       handleCloseModal();
       fetchData();
@@ -120,6 +127,7 @@ export default function ContractPayments({ contractId, currency }: { contractId:
       try {
         const { error } = await supabase.from('payments').delete().eq('id', id);
         if (error) throw error;
+        await logAction('DELETE', 'PAYMENT', id);
         fetchData();
       } catch (error) {
         console.error('Error deleting payment:', error);

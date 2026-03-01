@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Plus, Search, Users, Phone, Edit, Trash2 } from 'lucide-react';
 import HelpButton from '../components/HelpButton';
+import { logAction } from '../lib/audit';
 
 export default function Suppliers() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -76,11 +77,17 @@ export default function Suppliers() {
           .update(payload)
           .eq('id', editingSupplier.id);
         if (error) throw error;
+        await logAction('UPDATE', 'SUPPLIER', editingSupplier.id, payload);
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('suppliers')
-          .insert([payload]);
+          .insert([payload])
+          .select()
+          .single();
         if (error) throw error;
+        if (data) {
+          await logAction('CREATE', 'SUPPLIER', data.id, payload);
+        }
       }
 
       handleCloseModal();
@@ -98,6 +105,7 @@ export default function Suppliers() {
       try {
         const { error } = await supabase.from('suppliers').delete().eq('id', id);
         if (error) throw error;
+        await logAction('DELETE', 'SUPPLIER', id);
         fetchSuppliers();
       } catch (error) {
         console.error('Error deleting supplier:', error);

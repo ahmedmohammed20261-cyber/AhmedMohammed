@@ -12,6 +12,7 @@ import ContractDetails from './pages/ContractDetails';
 import ContractForm from './pages/ContractForm';
 import Suppliers from './pages/Suppliers';
 import Settings from './pages/Settings';
+import AuditLogs from './pages/AuditLogs';
 import { hasSupabaseConfig } from './lib/supabase';
 import { AlertCircle } from 'lucide-react';
 
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="contracts/:id" element={<ContractDetails />} />
           <Route path="contracts/:id/edit" element={<ContractForm />} />
           <Route path="suppliers" element={<Suppliers />} />
+          <Route path="audit-logs" element={<AuditLogs />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

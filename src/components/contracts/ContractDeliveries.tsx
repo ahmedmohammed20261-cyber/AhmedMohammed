@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { formatDate } from '../../lib/utils';
+import { logAction } from '../../lib/audit';
 
 export default function ContractDeliveries({ contractId }: { contractId: string }) {
   const [deliveries, setDeliveries] = useState<any[]>([]);
@@ -99,11 +100,17 @@ export default function ContractDeliveries({ contractId }: { contractId: string 
           .update(payload)
           .eq('id', editingDelivery.id);
         if (error) throw error;
+        await logAction('UPDATE', 'DELIVERY', editingDelivery.id, payload);
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('deliveries')
-          .insert([payload]);
+          .insert([payload])
+          .select()
+          .single();
         if (error) throw error;
+        if (data) {
+          await logAction('CREATE', 'DELIVERY', data.id, payload);
+        }
       }
       handleCloseModal();
       fetchData();
@@ -120,6 +127,7 @@ export default function ContractDeliveries({ contractId }: { contractId: string 
       try {
         const { error } = await supabase.from('deliveries').delete().eq('id', id);
         if (error) throw error;
+        await logAction('DELETE', 'DELIVERY', id);
         fetchData();
       } catch (error) {
         console.error('Error deleting delivery:', error);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, Save } from 'lucide-react';
+import { logAction } from '../lib/audit';
 
 export default function ContractForm() {
   const { id } = useParams();
@@ -79,11 +80,17 @@ export default function ContractForm() {
           .update(payload)
           .eq('id', id);
         if (error) throw error;
+        await logAction('UPDATE', 'CONTRACT', id as string, payload);
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('contracts')
-          .insert([payload]);
+          .insert([payload])
+          .select()
+          .single();
         if (error) throw error;
+        if (data) {
+          await logAction('CREATE', 'CONTRACT', data.id, payload);
+        }
       }
 
       navigate('/contracts');

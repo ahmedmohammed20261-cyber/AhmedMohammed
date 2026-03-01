@@ -10,6 +10,7 @@ import ContractPayments from '../components/contracts/ContractPayments';
 import ContractAttachments from '../components/contracts/ContractAttachments';
 import { ContractPrintView } from '../components/contracts/ContractPrintView';
 import HelpButton from '../components/HelpButton';
+import { logAction } from '../lib/audit';
 
 export default function ContractDetails() {
   const { id } = useParams();
@@ -75,6 +76,7 @@ export default function ContractDetails() {
       try {
         const { error } = await supabase.from('contracts').delete().eq('id', id);
         if (error) throw error;
+        await logAction('DELETE', 'CONTRACT', id as string);
         navigate('/contracts');
       } catch (error) {
         console.error('Error deleting contract:', error);

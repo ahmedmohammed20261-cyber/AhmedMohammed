@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
+import { logAction } from '../../lib/audit';
 
 export default function ContractItems({ contractId, currency }: { contractId: string, currency: string }) {
   const [items, setItems] = useState<any[]>([]);
@@ -78,11 +79,17 @@ export default function ContractItems({ contractId, currency }: { contractId: st
           .update(payload)
           .eq('id', editingItem.id);
         if (error) throw error;
+        await logAction('UPDATE', 'CONTRACT_ITEM', editingItem.id, payload);
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('contract_items')
-          .insert([payload]);
+          .insert([payload])
+          .select()
+          .single();
         if (error) throw error;
+        if (data) {
+          await logAction('CREATE', 'CONTRACT_ITEM', data.id, payload);
+        }
       }
       handleCloseModal();
       fetchItems();
@@ -99,6 +106,7 @@ export default function ContractItems({ contractId, currency }: { contractId: st
       try {
         const { error } = await supabase.from('contract_items').delete().eq('id', id);
         if (error) throw error;
+        await logAction('DELETE', 'CONTRACT_ITEM', id);
         fetchItems();
       } catch (error) {
         console.error('Error deleting item:', error);
