@@ -25,11 +25,27 @@ CREATE TABLE IF NOT EXISTS contract_expenses (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
--- 3. تفعيل RLS (Row Level Security)
+-- 3. إنشاء جدول سندات التسليم (Delivery Receipts)
+CREATE TABLE IF NOT EXISTS delivery_receipts (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  contract_id UUID REFERENCES contracts(id) ON DELETE CASCADE,
+  receipt_number TEXT NOT NULL,
+  delivery_date DATE NOT NULL,
+  recipient_name TEXT NOT NULL,
+  recipient_phone TEXT,
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- 4. تحديث جدول التسليمات ليرتبط بسند التسليم
+ALTER TABLE deliveries ADD COLUMN IF NOT EXISTS delivery_receipt_id UUID REFERENCES delivery_receipts(id) ON DELETE CASCADE;
+
+-- 5. تفعيل RLS (Row Level Security)
 ALTER TABLE contract_purchases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contract_expenses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE delivery_receipts ENABLE ROW LEVEL SECURITY;
 
--- 4. إضافة سياسات الوصول (Policies)
+-- 6. إضافة سياسات الوصول (Policies)
 CREATE POLICY "Users can view their own contract purchases"
   ON contract_purchases FOR SELECT
   USING (EXISTS (
@@ -72,8 +88,26 @@ CREATE POLICY "Users can update their own contract expenses"
     SELECT 1 FROM contracts WHERE contracts.id = contract_expenses.contract_id AND contracts.user_id = auth.uid()
   ));
 
-CREATE POLICY "Users can delete their own contract expenses"
-  ON contract_expenses FOR DELETE
+CREATE POLICY "Users can view their own delivery receipts"
+  ON delivery_receipts FOR SELECT
   USING (EXISTS (
-    SELECT 1 FROM contracts WHERE contracts.id = contract_expenses.contract_id AND contracts.user_id = auth.uid()
+    SELECT 1 FROM contracts WHERE contracts.id = delivery_receipts.contract_id AND contracts.user_id = auth.uid()
+  ));
+
+CREATE POLICY "Users can insert their own delivery receipts"
+  ON delivery_receipts FOR INSERT
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM contracts WHERE contracts.id = delivery_receipts.contract_id AND contracts.user_id = auth.uid()
+  ));
+
+CREATE POLICY "Users can update their own delivery receipts"
+  ON delivery_receipts FOR UPDATE
+  USING (EXISTS (
+    SELECT 1 FROM contracts WHERE contracts.id = delivery_receipts.contract_id AND contracts.user_id = auth.uid()
+  ));
+
+CREATE POLICY "Users can delete their own delivery receipts"
+  ON delivery_receipts FOR DELETE
+  USING (EXISTS (
+    SELECT 1 FROM contracts WHERE contracts.id = delivery_receipts.contract_id AND contracts.user_id = auth.uid()
   ));

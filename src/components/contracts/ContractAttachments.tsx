@@ -56,18 +56,17 @@ export default function ContractAttachments({ contractId }: { contractId: string
         throw uploadError;
       }
 
-      // 2. Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('attachments')
-        .getPublicUrl(filePath);
-
-      // 3. Save record in database
+      // 2. Get signed URL (valid for 10 years for simplicity, or just store the path and generate signed url on the fly)
+      // Actually, it's better to store the file path in the database and generate a signed URL when viewing.
+      // But since the current schema uses file_url, we'll store the path in file_url and generate signed URL on render.
+      // Let's modify the insert to store filePath.
+      
       const { data, error: dbError } = await supabase
         .from('attachments')
         .insert([
           {
             contract_id: contractId,
-            file_url: publicUrl,
+            file_url: filePath, // Storing path instead of public URL
             file_type: file.type || fileExt,
           }
         ])
@@ -76,7 +75,7 @@ export default function ContractAttachments({ contractId }: { contractId: string
 
       if (dbError) throw dbError;
       if (data) {
-        await logAction('CREATE', 'ATTACHMENT', data.id, { file_url: publicUrl, file_type: file.type || fileExt });
+        await logAction('CREATE', 'ATTACHMENT', data.id, { file_url: filePath, file_type: file.type || fileExt });
       }
 
       fetchAttachments();
@@ -93,10 +92,13 @@ export default function ContractAttachments({ contractId }: { contractId: string
   const handleDelete = async (id: string, fileUrl: string) => {
     if (window.confirm('هل أنت متأكد أنك تريد حذف هذا المرفق؟')) {
       try {
-        // Extract file path from URL
-        const urlObj = new URL(fileUrl);
-        const pathParts = urlObj.pathname.split('/');
-        const filePath = `${pathParts[pathParts.length - 2]}/${pathParts[pathParts.length - 1]}`;
+        // Extract file path from URL or use it directly if it's already a path
+        let filePath = fileUrl;
+        if (fileUrl.startsWith('http')) {
+          const urlObj = new URL(fileUrl);
+          const pathParts = urlObj.pathname.split('/');
+          filePath = `${pathParts[pathParts.length - 2]}/${pathParts[pathParts.length - 1]}`;
+        }
 
         // 1. Delete from storage
         const { error: storageError } = await supabase.storage
@@ -115,6 +117,26 @@ export default function ContractAttachments({ contractId }: { contractId: string
         console.error('Error deleting attachment:', error);
         alert('فشل في حذف المرفق');
       }
+    }
+  };
+
+  const handleDownload = async (fileUrl: string) => {
+    try {
+      let url = fileUrl;
+      // If it's a path (not a full URL), generate a signed URL
+      if (!fileUrl.startsWith('http')) {
+        const { data, error } = await supabase.storage
+          .from('attachments')
+          .createSignedUrl(fileUrl, 60 * 60); // 1 hour expiry
+          
+        if (error) throw error;
+        url = data.signedUrl;
+      }
+      
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      alert('فشل في فتح الملف');
     }
   };
 
@@ -190,15 +212,13 @@ export default function ContractAttachments({ contractId }: { contractId: string
                     </div>
                   </div>
                   <div className="mr-5 flex-shrink-0 flex space-x-4 space-x-reverse">
-                    <a
-                      href={attachment.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => handleDownload(attachment.file_url)}
                       className="text-gray-400 hover:text-indigo-600"
-                      title="تحميل"
+                      title="تحميل / عرض"
                     >
                       <Download size={20} />
-                    </a>
+                    </button>
                     <button
                       onClick={() => handleDelete(attachment.id, attachment.file_url)}
                       className="text-gray-400 hover:text-red-600"

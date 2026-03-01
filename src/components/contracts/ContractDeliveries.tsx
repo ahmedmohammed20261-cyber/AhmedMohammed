@@ -7,6 +7,7 @@ import { logAction } from '../../lib/audit';
 export default function ContractDeliveries({ contractId }: { contractId: string }) {
   const [deliveries, setDeliveries] = useState<any[]>([]);
   const [items, setItems] = useState<any[]>([]);
+  const [receipts, setReceipts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDelivery, setEditingDelivery] = useState<any>(null);
@@ -16,6 +17,7 @@ export default function ContractDeliveries({ contractId }: { contractId: string 
     quantity_delivered: '',
     delivery_date: new Date().toISOString().split('T')[0],
     notes: '',
+    delivery_receipt_id: '',
   });
 
   useEffect(() => {
@@ -25,6 +27,16 @@ export default function ContractDeliveries({ contractId }: { contractId: string 
   async function fetchData() {
     try {
       setLoading(true);
+      
+      // Fetch receipts for this contract
+      const { data: receiptsData } = await supabase
+        .from('delivery_receipts')
+        .select('id, receipt_number')
+        .eq('contract_id', contractId);
+        
+      if (receiptsData) {
+        setReceipts(receiptsData);
+      }
       // Fetch items for this contract
       const { data: itemsData, error: itemsError } = await supabase
         .from('contract_items')
@@ -64,6 +76,7 @@ export default function ContractDeliveries({ contractId }: { contractId: string 
         quantity_delivered: delivery.quantity_delivered.toString(),
         delivery_date: delivery.delivery_date,
         notes: delivery.notes || '',
+        delivery_receipt_id: delivery.delivery_receipt_id || '',
       });
     } else {
       setEditingDelivery(null);
@@ -72,6 +85,7 @@ export default function ContractDeliveries({ contractId }: { contractId: string 
         quantity_delivered: '',
         delivery_date: new Date().toISOString().split('T')[0],
         notes: '',
+        delivery_receipt_id: '',
       });
     }
     setIsModalOpen(true);
@@ -91,6 +105,7 @@ export default function ContractDeliveries({ contractId }: { contractId: string 
       quantity_delivered: parseFloat(formData.quantity_delivered),
       delivery_date: formData.delivery_date,
       notes: formData.notes,
+      delivery_receipt_id: formData.delivery_receipt_id || null,
     };
 
     try {
@@ -279,6 +294,19 @@ export default function ContractDeliveries({ contractId }: { contractId: string 
                         onChange={(e) => setFormData({ ...formData, delivery_date: e.target.value })}
                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">محضر التسليم (اختياري)</label>
+                      <select
+                        value={formData.delivery_receipt_id}
+                        onChange={(e) => setFormData({ ...formData, delivery_receipt_id: e.target.value })}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      >
+                        <option value="">بدون محضر رسمي</option>
+                        {receipts.map(receipt => (
+                          <option key={receipt.id} value={receipt.id}>سند رقم: {receipt.receipt_number}</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">ملاحظات</label>

@@ -1,13 +1,14 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { ArrowLeft, Edit, Trash2, Package, Truck, DollarSign, Paperclip, Printer, ShoppingCart, Receipt } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Package, Truck, DollarSign, Paperclip, Printer, ShoppingCart, Receipt, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { useReactToPrint } from 'react-to-print';
 import ContractItems from '../components/contracts/ContractItems';
 import ContractPurchases from '../components/contracts/ContractPurchases';
 import ContractExpenses from '../components/contracts/ContractExpenses';
 import ContractDeliveries from '../components/contracts/ContractDeliveries';
+import DeliveryReceipts from '../components/contracts/DeliveryReceipts';
 import ContractPayments from '../components/contracts/ContractPayments';
 import ContractAttachments from '../components/contracts/ContractAttachments';
 import { ContractPrintView } from '../components/contracts/ContractPrintView';
@@ -55,7 +56,7 @@ export default function ContractDetails() {
       try {
         const [itemsRes, paymentsRes] = await Promise.all([
           supabase.from('contract_items').select('*').eq('contract_id', id),
-          supabase.from('contract_payments').select('*').eq('contract_id', id)
+          supabase.from('payments').select('*').eq('contract_id', id)
         ]);
         
         setPrintData({
@@ -98,6 +99,7 @@ export default function ContractDetails() {
     { id: 'purchases', name: 'المشتريات', icon: ShoppingCart },
     { id: 'expenses', name: 'المصاريف', icon: Receipt },
     { id: 'deliveries', name: 'التسليمات', icon: Truck },
+    { id: 'delivery_receipts', name: 'محاضر التسليم', icon: FileText },
     { id: 'payments', name: 'المدفوعات', icon: DollarSign },
     { id: 'attachments', name: 'المرفقات', icon: Paperclip },
   ];
@@ -221,6 +223,7 @@ export default function ContractDetails() {
           {activeTab === 'purchases' && <ContractPurchases contractId={id as string} currency={contract.currency || 'SAR'} />}
           {activeTab === 'expenses' && <ContractExpenses contractId={id as string} currency={contract.currency || 'SAR'} />}
           {activeTab === 'deliveries' && <ContractDeliveries contractId={id as string} />}
+          {activeTab === 'delivery_receipts' && <DeliveryReceipts contractId={id as string} />}
           {activeTab === 'payments' && <ContractPayments contractId={id as string} currency={contract.currency || 'SAR'} />}
           {activeTab === 'attachments' && <ContractAttachments contractId={id as string} />}
         </div>

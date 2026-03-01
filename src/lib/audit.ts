@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 
 export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE';
-export type EntityType = 'CONTRACT' | 'SUPPLIER' | 'CONTRACT_ITEM' | 'DELIVERY' | 'PAYMENT' | 'ATTACHMENT' | 'CONTRACT_PURCHASE' | 'CONTRACT_EXPENSE';
+export type EntityType = 'CONTRACT' | 'SUPPLIER' | 'CONTRACT_ITEM' | 'DELIVERY' | 'PAYMENT' | 'ATTACHMENT' | 'CONTRACT_PURCHASE' | 'CONTRACT_EXPENSE' | 'DELIVERY_RECEIPT';
 
 export async function logAction(
   action: AuditAction,
